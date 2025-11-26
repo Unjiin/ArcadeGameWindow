@@ -1,0 +1,258 @@
+/* Основные стили для всего приложения */
+window {
+    background: linear-gradient(135deg, #0c0c0c, #1a1a1a, #2d2d2d);
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Стиль для главного меню */
+.menu {
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Заголовок */
+.titleMenu {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: bold;
+    text-shadow: 0 2px 10px rgba(0, 255, 255, 0.5);
+    margin-bottom: 40px;
+    background-clip: text;
+}
+
+/* Контейнер для кнопок */
+.buttonBox {
+    margin: 30px 0;
+}
+
+/* Кнопки меню */
+.menuBtn {
+    background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+    color: #00ffff;
+    border: none;
+    border-radius: 15px;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+}
+
+.menuBtn:hover {
+    background: linear-gradient(145deg, #00ffff, #0080ff);
+    color: #000000;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+}
+
+.menuBtn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Кнопка настроек - круглая в правом верхнем углу */
+.settingsBtn {
+    background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+    border: #dfe1f1 1px solid;
+    color: white;
+    /*border-radius: 50%;*/
+    font-size: 24px;
+    margin: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.settingsBtn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+}
+
+/* Футер */
+.footer {
+    color: #666666;
+    font-size: 14px;
+    margin-top: 40px;
+    opacity: 0.7;
+}
+
+/* Анимация появления элементов */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.menuBtn {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.menuBtn:nth-child(1) { animation-delay: 0.2s; }
+.menuBtn:nth-child(2) { animation-delay: 0.4s; }
+.menuBtn:nth-child(3) { animation-delay: 0.6s; }
+
+
+/* Стили для экрана сапера */
+.minesweeper-screen {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    border: 1px solid #333333;
+}
+
+.minesweeper-title {
+    color: #00ffff;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.minesweeper-info {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.minesweeper-grid {
+    margin: 15px 0;
+    padding: 8px;
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    border: 2px solid #444444;
+}
+
+/* Стили клеток */
+.minesweeper-cell {
+    min-width: 30px;
+    min-height: 30px;
+    border: 2px solid;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.1s ease;
+}
+
+/* Закрытая клетка */
+.cell-closed {
+    background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+    border-color: #666666 #333333 #333333 #666666;
+    box-shadow: inset 1px 1px 2px rgba(255,255,255,0.1);
+}
+
+.cell-closed:hover {
+    background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+}
+
+/* Открытая клетка */
+.cell-open {
+    background: #1a1a1a;
+    border-color: #333333;
+    box-shadow: none;
+}
+
+/* Клетка с флажком */
+.cell-flagged {
+    background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+    border-color: #666666 #333333 #333333 #666666;
+    color: #ff4444;
+    font-size: 12px;
+}
+
+/* Цвета цифр */
+.cell-number-1 { color: #0000ff; }    /* Синий */
+.cell-number-2 { color: #00aa00; }    /* Зеленый */
+.cell-number-3 { color: #ff0000; }    /* Красный */
+.cell-number-4 { color: #000088; }    /* Темно-синий */
+.cell-number-5 { color: #880000; }    /* Темно-красный */
+.cell-number-6 { color: #008888; }    /* Бирюзовый */
+.cell-number-7 { color: #000000; }    /* Черный */
+.cell-number-8 { color: #888888; }    /* Серый */
+
+/* Клетка с бомбой */
+.cell-bomb {
+    background: #ff4444;
+    color: #000000;
+    font-size: 14px;
+}
+
+/* Кнопка возврата */
+.minesweeper-back-btn {
+    background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+    color: #00ffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+
+.minesweeper-back-btn:hover {
+    background: linear-gradient(145deg, #00ffff, #0080ff);
+    color: #000000;
+    transform: translateY(-2px);
+}
+
+/* Стили для сообщения о результате игры */
+.game-result {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 20px;
+}
+
+.win-message {
+    color: #2ecc71;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #ffffff, #6dcf96);
+    background-clip: text;
+    border-radius: 15px;
+
+}
+
+.lose-message {
+    color: #e74c3c;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #ffffff, #e8c9c5);
+    background-clip: text;
+    border-radius: 15px;
+}
+
+/* Стили для кнопки рестарта */
+.restart-button {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 15px 30px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.restart-button:hover {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.restart-button:active {
+    transform: translateY(0px);
+}

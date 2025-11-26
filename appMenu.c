@@ -22,6 +22,13 @@ static void on_button_clicked(GtkButton *button, MenuBtns *data) {
             gtk_stack_set_visible_child_name(GTK_STACK(data->data->stack), "cards");
             break;
         case 3:
+            if (!data->data) {
+                if (!data->data->stack) {
+                    printf("ERROR: stack is NULL in click handler\n");
+                }
+                printf("ERROR: app_data is NULL in click handler\n");
+                return;
+            }
             gtk_stack_set_visible_child_name(GTK_STACK(data->data->stack), "minesweeper");
             break;
         default:
@@ -33,18 +40,34 @@ GtkWidget* createMainMenu(AppData *data) {
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
     gtk_widget_set_halign(main_box, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(main_box, GTK_ALIGN_CENTER);
+    gtk_widget_set_size_request(main_box, 1000, 600);
+    // Верхняя панель для кнопки настроек (выравнивание по правому краю)
+    GtkWidget *top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_hexpand(top_box, TRUE);
+
+    // Пустое пространство слева
+    GtkWidget *spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_hexpand(spacer, TRUE);
+
+    // Кнопка настроек
     MenuBtns *btn = g_malloc0(sizeof(MenuBtns));
     btn->data = data;
     btn->index = Settings;
     GtkWidget *settingsButton = gtk_button_new_with_label("⚙️");
     g_signal_connect(settingsButton, "clicked", G_CALLBACK(on_button_clicked), btn);
-    gtk_style_context_add_class(settingsButton, "settingsBtn");
-    gtk_container_add(GTK_BOX(main_box), settingsButton);
+    gtk_widget_set_cursor(settingsButton, gdk_cursor_new_from_name("pointer", NULL));
+    gtk_widget_set_size_request(settingsButton, 20, 40);
+    gtk_widget_add_css_class(settingsButton, "settingsBtn");
+
+    // Собираем верхнюю панель
+    gtk_box_append(GTK_BOX(top_box), spacer);
+    gtk_box_append(GTK_BOX(top_box), settingsButton);
+    gtk_box_append(GTK_BOX(main_box), top_box);
     
 
     // Заголовок
     GtkWidget *titleLabel = gtk_label_new("My games");
-    gtk_widget_add_css_class(titleLabel, "title");
+    gtk_widget_add_css_class(titleLabel, "titleMenu");
     gtk_box_append(GTK_BOX(main_box), titleLabel);
 
     // Контейнер для кнопок
@@ -59,7 +82,9 @@ GtkWidget* createMainMenu(AppData *data) {
     for (int i = 0; i < 3; i++) {
         GtkWidget *btn = gtk_button_new_with_label(buttons[i]);
         gtk_widget_set_size_request(btn, 120, 50); // фиксированная ширина и высота
-        gtk_widget_add_css_class(button_box, "menuBtn");
+        gtk_widget_add_css_class(btn, "menuBtn");
+        gtk_widget_set_cursor(btn, gdk_cursor_new_from_name("pointer", NULL));
+        gtk_widget_set_size_request(btn, 200, 60);
         MenuBtns *btnData = g_new0(MenuBtns, 1);
         btnData->data = data;
         switch (i)
@@ -78,7 +103,7 @@ GtkWidget* createMainMenu(AppData *data) {
             break;
         }
         g_signal_connect(btn, "clicked", G_CALLBACK(on_button_clicked), btnData);
-        gtk_box_pack_start(GTK_BOX(button_box), btn, FALSE, FALSE, 0);
+        gtk_box_append(GTK_BOX(button_box), btn);
     }
 
     // Футер

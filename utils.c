@@ -2,7 +2,7 @@
 #include "utils.h"
 const char *namesOfDifficulty[] = { "Easy", "Medium", "Hard" };
 const int difficultyValues[] = { 10, 20, 50 };
-gboolean on_button_enter(GtkWidget *widget, GdkEventCrossing *event, gpointer data) {
+gboolean on_button_enter(GtkWidget *widget, GtkEventCrossing *event, gpointer data) {
     GdkCursor *cursor = (GdkCursor*)data;
     GdkWindow *window = gtk_widget_get_window(widget);
     if (window)

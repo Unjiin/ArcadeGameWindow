@@ -1,40 +1,23 @@
 #include "app.h"
-typedef struct {
-    AppData *data;
-    int index;
-} MenuBtns;
-typedef enum {
-    Settings,
-    LuckyGame,
-    Cards,
-    MineSweeper
-} Buttons;
-static void on_button_clicked(GtkButton *button, MenuBtns *data) {
-    switch (data->index)
+static void on_button_clicked(GtkButton *button, AppData *data) {
+    int index = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "game-index"));
+    switch (index)
         {
         case 0:
-            gtk_stack_set_visible_child_name(GTK_STACK(data->data->stack), "settings");
+            reopen_window(data, "settings");
             break;
         case 1:
-            gtk_stack_set_visible_child_name(GTK_STACK(data->data->stack), "luckyGame");
+            gtk_stack_set_visible_child_name(GTK_STACK(data->stack), "luckyGame");
             break;
         case 2:
-            gtk_stack_set_visible_child_name(GTK_STACK(data->data->stack), "cards");
+            gtk_stack_set_visible_child_name(GTK_STACK(data->stack), "cards");
             break;
         case 3:
-            if (!data->data) {
-                if (!data->data->stack) {
-                    printf("ERROR: stack is NULL in click handler\n");
-                }
-                printf("ERROR: app_data is NULL in click handler\n");
-                return;
-            }
-            gtk_stack_set_visible_child_name(GTK_STACK(data->data->stack), "minesweeper");
+            reopen_window(data, "minesweeper");
             break;
         default:
             break;
         }
-    g_free(data);
 }
 GtkWidget* createMainMenu(AppData *data) {
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
@@ -50,13 +33,14 @@ GtkWidget* createMainMenu(AppData *data) {
     gtk_widget_set_hexpand(spacer, TRUE);
 
     // Кнопка настроек
-    MenuBtns *btn = g_malloc0(sizeof(MenuBtns));
-    btn->data = data;
-    btn->index = Settings;
-    GtkWidget *settingsButton = gtk_button_new_with_label("⚙️");
-    g_signal_connect(settingsButton, "clicked", G_CALLBACK(on_button_clicked), btn);
+    GtkWidget *settings_pic = load_image("settings.svg");
+    GtkWidget *settingsButton = gtk_button_new();
+    gtk_widget_add_css_class(settings_pic, "settingsPic");
+    gtk_button_set_child(GTK_BUTTON(settingsButton), settings_pic);
+    g_object_set_data(G_OBJECT(settingsButton), "game-index", GINT_TO_POINTER(0));
+    g_signal_connect(settingsButton, "clicked", G_CALLBACK(on_button_clicked), data);
     gtk_widget_set_cursor(settingsButton, gdk_cursor_new_from_name("pointer", NULL));
-    gtk_widget_set_size_request(settingsButton, 20, 40);
+    gtk_widget_set_size_request(settingsButton, 50, 50);
     gtk_widget_add_css_class(settingsButton, "settingsBtn");
 
     // Собираем верхнюю панель
@@ -85,24 +69,8 @@ GtkWidget* createMainMenu(AppData *data) {
         gtk_widget_add_css_class(btn, "menuBtn");
         gtk_widget_set_cursor(btn, gdk_cursor_new_from_name("pointer", NULL));
         gtk_widget_set_size_request(btn, 200, 60);
-        MenuBtns *btnData = g_new0(MenuBtns, 1);
-        btnData->data = data;
-        switch (i)
-        {
-        case 0:
-            btnData->index = LuckyGame;
-            break;
-        case 1:
-            btnData->index = Cards;
-            break;
-        case 2:
-            btnData->index = MineSweeper;
-            break;
-        
-        default:
-            break;
-        }
-        g_signal_connect(btn, "clicked", G_CALLBACK(on_button_clicked), btnData);
+        g_object_set_data(G_OBJECT(btn), "game-index", GINT_TO_POINTER(i+1));
+        g_signal_connect(btn, "clicked", G_CALLBACK(on_button_clicked), data);
         gtk_box_append(GTK_BOX(button_box), btn);
     }
 

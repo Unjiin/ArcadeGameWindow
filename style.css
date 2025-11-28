@@ -27,9 +27,13 @@ window {
     font-weight: bold;
     text-shadow: 0 2px 10px rgba(0, 255, 255, 0.5);
     margin-bottom: 40px;
-    background-clip: text;
 }
-
+.descMenu {
+    color: #ffffff;
+    font-size: 38px;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
 /* Контейнер для кнопок */
 .buttonBox {
     margin: 30px 0;
@@ -63,19 +67,23 @@ window {
 
 /* Кнопка настроек - круглая в правом верхнем углу */
 .settingsBtn {
-    background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+    background: linear-gradient(145deg, #bfc1c5, #929ab8);
     border: #dfe1f1 1px solid;
     color: white;
     /*border-radius: 50%;*/
+    padding: 5px;
     font-size: 24px;
     margin: 20px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
 }
-
-.settingsBtn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+.settingsPic {
+    transition: .3s;
+    min-width: 30px;
+    min-height: 30px;
+}
+.settingsBtn:hover .settingsPic {
+    transform: rotate(90deg) ;
 }
 
 /* Футер */
@@ -105,6 +113,7 @@ window {
 .menuBtn:nth-child(1) { animation-delay: 0.2s; }
 .menuBtn:nth-child(2) { animation-delay: 0.4s; }
 .menuBtn:nth-child(3) { animation-delay: 0.6s; }
+.menuBtn:nth-child(4) { animation-delay: 0.8s; }
 
 
 /* Стили для экрана сапера */
@@ -139,12 +148,12 @@ window {
 
 /* Стили клеток */
 .minesweeper-cell {
-    min-width: 30px;
-    min-height: 30px;
+    padding: 0;
+    margin: 0;
     border: 2px solid;
     border-radius: 3px;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 18px;
     transition: all 0.1s ease;
 }
 
@@ -175,7 +184,7 @@ window {
 }
 
 /* Цвета цифр */
-.cell-number-1 { color: #0000ff; }    /* Синий */
+.cell-number-1 { color: #0033ff; }    /* Синий */
 .cell-number-2 { color: #00aa00; }    /* Зеленый */
 .cell-number-3 { color: #ff0000; }    /* Красный */
 .cell-number-4 { color: #000088; }    /* Темно-синий */
@@ -211,26 +220,26 @@ window {
 }
 
 /* Стили для сообщения о результате игры */
-.game-result {
+.game-result-text {
     font-size: 48px;
     font-weight: bold;
     margin: 20px;
 }
 
 .win-message {
+    padding: 15px;
     color: #2ecc71;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     background: linear-gradient(135deg, #ffffff, #6dcf96);
-    background-clip: text;
     border-radius: 15px;
 
 }
 
 .lose-message {
+    padding: 15px;
     color: #e74c3c;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     background: linear-gradient(135deg, #ffffff, #e8c9c5);
-    background-clip: text;
     border-radius: 15px;
 }
 

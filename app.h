@@ -3,8 +3,8 @@
 
 #include <gtk/gtk.h>
 
-#define ROWS 15
-#define COLS 15
+#define ROWS 11
+#define COLS 25
 
 // Объявление структуры CellData
 typedef struct CellData CellData;
@@ -12,11 +12,13 @@ typedef struct CellData CellData;
 typedef struct {
     GtkWidget *window;
     GtkWidget *stack;
-    int *difficult;
+    int difficult;
+
+    // Настройки
+    GtkWidget *difficulty_label;
 
     // Для сапера
     GtkWidget *minesweeper_grid;
-    GtkWidget *minesweeper_box;
     CellData **minesweeper_cells;
     GtkWidget *game_over_label;
     GtkWidget *flags_label;
@@ -30,7 +32,6 @@ typedef struct {
 
 struct CellData {
     GtkWidget *button;
-    AppData* data;
     int row;
     int col;
     int is_bomb;
@@ -43,8 +44,10 @@ struct CellData {
 // Прототипы функций
 GtkWidget* createMainMenu(AppData *data);
 GtkWidget* createMinesweeperScreen(AppData *data);
-void back_to_menu(AppData *app_data);
+GtkWidget* createSettingsScreen(AppData *data);
+void back_to_menu(GtkWidget *widget, AppData *app_data);
 void cleanup_minesweeper_game(AppData *app_data);
 void showResults(AppData *app_data, int res);
-
+void reopen_window(AppData *app_data, const char *str);
+GtkWidget* load_image(const char *filename);
 #endif

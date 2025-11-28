@@ -17,5 +17,7 @@ add_executable(${PROJECT_NAME} main.c
         menu.c
         appMenu.c
         appMinesweeper.c
+        utils.c
+        appSettings.c
 )
 target_link_libraries(${PROJECT_NAME} ${GTK4_LIBRARIES})

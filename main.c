@@ -26,10 +26,10 @@ static void activate(GtkApplication *app, gpointer user_data) {
     AppData *app_data = g_malloc0(sizeof(AppData));
 
     load_css();
-    // ИНИЦИАЛИЗИРУЕМ AppData правильно!
+
     app_data->window = gtk_application_window_new(app);  // Сохраняем в структуру
     app_data->stack = gtk_stack_new();  // Создаем stack и сохраняем в структуру
-    app_data->difficult = &difficult;
+    app_data->difficult = difficult;
 
     gtk_window_set_title(GTK_WINDOW(app_data->window), "My Games");
     gtk_window_set_default_size(GTK_WINDOW(app_data->window), 1200, 1000);
@@ -39,16 +39,16 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
     // Создаем меню
     GtkWidget *main_menu = createMainMenu(app_data);
-    GtkWidget *minesweeper_screen = createMinesweeperScreen(app_data);
+    // GtkWidget *minesweeper_screen = createMinesweeperScreen(app_data);
 
     gtk_stack_add_named(GTK_STACK(app_data->stack), main_menu, "menu");
-    gtk_stack_add_named(GTK_STACK(app_data->stack), minesweeper_screen, "minesweeper");
+    // gtk_stack_add_named(GTK_STACK(app_data->stack), minesweeper_screen, "minesweeper");
 
     gtk_stack_set_visible_child_name(GTK_STACK(app_data->stack), "menu");
 
     // Устанавливаем stack как дочерний виджет окна
     gtk_window_set_child(GTK_WINDOW(app_data->window), app_data->stack);
-    gtk_widget_show(app_data->window);
+    gtk_widget_set_visible(app_data->window, TRUE);
 
     // Освобождаем память при закрытии окна
     g_signal_connect_swapped(app_data->window, "destroy", G_CALLBACK(g_free), app_data);

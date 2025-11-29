@@ -69,13 +69,29 @@ void cleanup_minesweeper_game(AppData *app_data) {
     app_data->bombs_count = 0;  // важно! будет переустановлено в createMinesweeperScreen
     app_data->label_flags_count = 0;
 }
+void openAllGrid(AppData *app_data) {
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (!app_data->minesweeper_cells[i][j].is_open || app_data->minesweeper_cells[i][j].neighbor_bombs) {
+                app_data->minesweeper_cells[i][j].is_open = 1;
+                app_data->minesweeper_cells[i][j].neighbor_bombs = 0;
+                update_cell_appearance(&app_data->minesweeper_cells[i][j]);
+            }
+        }
+    }
+}
 void showResults(AppData *app_data, int res) {
     // Останавливаем таймер
     if (app_data->timer_id != 0) {
         g_source_remove(app_data->timer_id);
         app_data->timer_id = 0;
     }
-
+    if (res == 0) {
+        openAllGrid(app_data);
+        play_sound("sounds/explosion.flac", 0, 0, app_data);
+    } else {
+        play_sound("sounds/bomb-has-been-defused.wav", 0, 0, app_data);
+    }
     // Главный оверлей — вертикальный бокс по центру
     GtkWidget *result_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 30);
     gtk_widget_set_halign(result_box, GTK_ALIGN_CENTER);
@@ -132,7 +148,7 @@ gboolean update_timer_callback(gpointer user_data) {
     // Возвращаем TRUE чтобы таймер продолжал работать
     return TRUE;
 }
-void on_cell_clicked_function(int row, int col, AppData *app_data) {
+void on_cell_clicked_function(int row, int col, AppData *app_data, int isHumanPress) {
 
     if (!app_data->minesweeper_cells) {
         return;
@@ -149,10 +165,12 @@ void on_cell_clicked_function(int row, int col, AppData *app_data) {
         app_data->timer_id = g_timeout_add_seconds(1, update_timer_callback, app_data);
         place_bombs(app_data, cell->row, cell->col);
         app_data->is_bombs_set = 1;
+        play_sound("sounds/bomb-has-been-planted.wav", 0, 0, app_data);
     }
 
     // Открываем текущую клетку
     cell->is_open = 1;
+    if (isHumanPress) play_sound("sounds/click9.wav", 0, 0, app_data);
     update_cell_appearance(cell);
 
     // ВАЖНО: Рекурсия только если у клетки 0 соседних бомб И она не бомба
@@ -170,7 +188,7 @@ void on_cell_clicked_function(int row, int col, AppData *app_data) {
 
                     // Рекурсия только для закрытых и нефлагированных клеток
                     if (!neighbor->is_open && !neighbor->is_flagged) {
-                        on_cell_clicked_function(ni, nj, app_data);
+                        on_cell_clicked_function(ni, nj, app_data, 0);
                     }
                 }
             }
@@ -181,16 +199,13 @@ void on_cell_clicked_function(int row, int col, AppData *app_data) {
 }
 static void on_cell_clicked(GtkButton *button, gpointer user_data) {
     OnClickData *cell_from_signal = (OnClickData *)user_data;
-    on_cell_clicked_function(cell_from_signal->row, cell_from_signal->col, cell_from_signal->data);
+    on_cell_clicked_function(cell_from_signal->row, cell_from_signal->col, cell_from_signal->data, 1);
 }
-
 static void on_cell_right_click(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data) {
     OnClickData *cell_from_signal = (OnClickData *)user_data;
     AppData *app_data = cell_from_signal->data;
-
     // Получаем правильную клетку из массива
     CellData *cell = &app_data->minesweeper_cells[cell_from_signal->row][cell_from_signal->col];
-
     if (cell->is_open) return;
 
     if (app_data->label_flags_count > 0 || (app_data->label_flags_count == 0 && cell->is_flagged)) {
@@ -199,6 +214,7 @@ static void on_cell_right_click(GtkGestureClick *gesture, int n_press, double x,
 
         update_counts(app_data);
         cell->is_flagged = !cell->is_flagged;
+        play_sound("sounds/click1.wav", 0, 0, app_data);
         update_cell_appearance(cell);
     }
     if (app_data->label_flags_count == 0) checkWinOrLose(app_data);
@@ -206,6 +222,7 @@ static void on_cell_right_click(GtkGestureClick *gesture, int n_press, double x,
 // Функция возврата в меню
 void back_to_menu(GtkWidget *widget, AppData *app_data) {
     (void)widget;  // чтобы компилятор не срал варнингами
+    play_sound("sounds/click.wav", 0, 0, app_data);
     reopen_window(app_data, "menu");
 }
 
@@ -251,6 +268,7 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
             cells[row][col].is_flagged = FALSE;
             cells[row][col].is_bomb = FALSE;
             cells[row][col].neighbor_bombs = 0;
+            cells[row][col].timeout_id = 0;
             cells[row][col].button = create_cell(row, col, app_data);
 
             update_cell_appearance(&cells[row][col]);
@@ -286,6 +304,7 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
     // Кнопка возврата
     GtkWidget *back_btn = gtk_button_new_with_label("← Назад в меню");
     gtk_widget_add_css_class(back_btn, "minesweeper-back-btn");
+    add_hover_sound(back_btn, "sounds/MenuSelection.wav", 0, 0, app_data);
     gtk_widget_set_cursor(back_btn, gdk_cursor_new_from_name("pointer", NULL));
     g_signal_connect(back_btn, "clicked", G_CALLBACK(back_to_menu), app_data);
 
@@ -333,6 +352,11 @@ static void update_counts(AppData *app_data) {
     gtk_label_set_text(GTK_LABEL(app_data->flags_label), flag_text);
 }
 
+static gboolean update_cell_appearance_timeout(gpointer user_data) {
+    CellData *cell = (CellData*)user_data;
+    update_cell_appearance(cell);
+    return G_SOURCE_REMOVE; // Таймер сработает только один раз
+}
 
 // Обновление внешнего вида клетки
 static void update_cell_appearance(CellData *cell) {
@@ -350,14 +374,26 @@ static void update_cell_appearance(CellData *cell) {
     // ОЧИЩАЕМ СОДЕРЖИМОЕ КНОПКИ
     gtk_button_set_child(GTK_BUTTON(cell->button), NULL);
     gtk_button_set_label(GTK_BUTTON(cell->button), "");
-
     if (cell->is_open) {
         gtk_widget_add_css_class(cell->button, "cell-open");
         gtk_widget_set_cursor(cell->button, gdk_cursor_new_from_name("default", NULL));
 
-        if (cell->is_bomb) {
-            GtkWidget *bomb_pic = load_image("bomb.svg"); // чуть меньше, чтоб красиво
-            gtk_button_set_child(GTK_BUTTON(cell->button), bomb_pic);
+        if (cell->is_bomb && cell->timeout_id == 0) {
+            GtkWidget *overlay = gtk_overlay_new();
+
+            // Создаём пустой label как основной child overlay
+            gtk_overlay_set_child(GTK_OVERLAY(overlay), gtk_label_new(""));
+            // Загружаем и добавляем гифку взрыва поверх основного контента
+            GtkWidget *explosion = load_gif_animation_ms("assets/explosion.gif", 1600);
+            if (explosion) {
+                gtk_widget_set_halign(explosion, GTK_ALIGN_CENTER);
+                gtk_widget_set_valign(explosion, GTK_ALIGN_CENTER);
+                gtk_overlay_add_overlay(GTK_OVERLAY(overlay), explosion);
+            }
+
+            // Устанавливаем оверлей в кнопку
+            gtk_button_set_child(GTK_BUTTON(cell->button), overlay);
+            cell->timeout_id = g_timeout_add(1660, update_cell_appearance_timeout, cell);
         } else if (cell->neighbor_bombs > 0) {
             char num_text[4];
             snprintf(num_text, sizeof(num_text), "%d", cell->neighbor_bombs);

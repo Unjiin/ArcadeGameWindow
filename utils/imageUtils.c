@@ -1,4 +1,4 @@
-#include "app.h"
+#include "../app.h"
 GtkWidget* load_image(const char *filename) {
     gchar *exe_dir = get_exe_directory();
     if (!exe_dir) {

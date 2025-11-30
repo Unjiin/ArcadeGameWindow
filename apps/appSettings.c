@@ -1,4 +1,4 @@
-#include "app.h"
+#include "../app.h"
 typedef enum {
     Easy,
     Medium,

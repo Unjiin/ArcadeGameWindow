@@ -50,13 +50,12 @@ endif()
 # ----------------------------
 add_executable(${PROJECT_NAME}
         main.c
-        menu.c
-        appMenu.c
-        appMinesweeper.c
-        utils.c
-        appSettings.c
-        musicUtils.c
-        imageUtils.c
+        apps/appMenu.c
+        apps/appMinesweeper.c
+        utils/utils.c
+        apps/appSettings.c
+        utils/musicUtils.c
+        utils/imageUtils.c
         ${APP_ICON_RESOURCE}
 )
 

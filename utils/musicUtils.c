@@ -1,4 +1,4 @@
-#include "app.h"
+#include "../app.h"
 #include <gst/gst.h>
 typedef struct {
     GstElement *player;

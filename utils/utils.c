@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 #include <glib.h>
-#include "app.h"
+#include "../app.h"
 #include <windows.h>
 gchar* get_exe_directory() {
     wchar_t wpath[MAX_PATH];

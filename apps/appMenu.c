@@ -1,4 +1,4 @@
-#include "app.h"
+#include "../app.h"
 static void on_button_clicked(GtkButton *button, AppData *data) {
     play_sound("sounds/click.wav", 0, 0, data);
     int index = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "game-index"));

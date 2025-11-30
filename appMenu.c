@@ -198,8 +198,8 @@ GtkWidget* createMainMenu(AppData *data) {
         g_signal_connect(btn, "clicked", G_CALLBACK(on_button_clicked), data);
         gtk_box_append(GTK_BOX(right_box), btn);
     }
-    GtkWidget *card = create_flip_card("♠️", "A");  // или картинка, или цвет
-    gtk_box_append(GTK_BOX(right_box), card);
+    // GtkWidget *card = create_flip_card("♠️", "A");  // или картинка, или цвет
+    // gtk_box_append(GTK_BOX(right_box), card);
 
     // Футер
     GtkWidget *footer = gtk_label_new("Created by Unjin");

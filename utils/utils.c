@@ -1,16 +1,58 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 #include "../app.h"
-#include <windows.h>
+
+#ifdef _WIN32
+    #include <windows.h> // Подключаем только на Windows
+#else
+    #include <limits.h>   // Для PATH_MAX
+    #include <mach-o/dyld.h> // macOS-специфичный API для получения пути
+    #include <stdlib.h>   // Для realpath()
+#endif
+
 gchar* get_exe_directory() {
+    char path_buf[PATH_MAX]; // PATH_MAX определен в limits.h
+    char actual_path[PATH_MAX];
+
+#ifdef _WIN32
+    // ===== РЕАЛИЗАЦИЯ ДЛЯ WINDOWS =====
     wchar_t wpath[MAX_PATH];
     if (GetModuleFileNameW(NULL, wpath, MAX_PATH) == 0) {
         return NULL;
     }
+    // Преобразуем широкие символы в UTF-8 для согласованности
     char path[MAX_PATH];
     wcstombs(path, wpath, MAX_PATH);
+    // Приводим путь к канонической форме (убираем символы ".." и ".")
+    if (_fullpath(actual_path, path, PATH_MAX) == NULL) {
+        return NULL;
+    }
+#else
+    // ===== РЕАЛИЗАЦИЯ ДЛЯ MACOS (и других UNIX-систем) =====
+    uint32_t size = sizeof(path_buf);
+    if (_NSGetExecutablePath(path_buf, &size) != 0) {
+        // Буфер слишком мал - выделяем память динамически
+        char *dynamic_buf = (char *)g_malloc(size);
+        if (_NSGetExecutablePath(dynamic_buf, &size) != 0) {
+            g_free(dynamic_buf);
+            return NULL;
+        }
+        // Получаем абсолютный канонический путь
+        if (realpath(dynamic_buf, actual_path) == NULL) {
+            g_free(dynamic_buf);
+            return NULL;
+        }
+        g_free(dynamic_buf);
+    } else {
+        // Получаем абсолютный канонический путь
+        if (realpath(path_buf, actual_path) == NULL) {
+            return NULL;
+        }
+    }
+#endif
 
-    char *dir = g_path_get_dirname(path);
+    // ОБЩАЯ ЧАСТЬ: получаем директорию из полного пути
+    char *dir = g_path_get_dirname(actual_path);
     return dir;
 }
 

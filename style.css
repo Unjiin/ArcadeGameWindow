@@ -125,14 +125,14 @@ window {
 }
 
 /* Стили для экрана сапера */
-.minesweeper-screen {
+.game-screen {
     padding: 20px;
     background: rgba(0, 0, 0, 0.8);
     border-radius: 15px;
     border: 1px solid #333333;
 }
 
-.minesweeper-title {
+.game-title {
     color: #00ffff;
     font-size: 28px;
     font-weight: bold;
@@ -140,7 +140,7 @@ window {
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
-.minesweeper-info {
+.game-info {
     color: #ffffff;
     font-size: 18px;
     font-weight: bold;
@@ -232,6 +232,7 @@ window {
     font-size: 48px;
     font-weight: bold;
     margin: 20px;
+    background-color: rgba(0, 170, 0, 0.55);
 }
 
 .win-message {
@@ -272,4 +273,90 @@ window {
 
 .restart-button:active {
     transform: translateY(0px);
+}
+
+.ttt-title {
+    font-size: 72px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #ff00cc, #3333ff);
+    text-shadow: 0 0 30px rgba(255,0,255,0.5);
+    margin-bottom: 20px;
+    border-radius: 20px;
+}
+
+.ttt-field {
+    background: rgba(10,10,30,0.9);
+    padding: 40px;
+    border-radius: 30px;
+    box-shadow: 0 0 80px rgba(138,43,226,0.8);
+    border: 3px solid #8a2be2;
+}
+
+.tictactoe-cell {
+    background: rgba(20,20,60,0.7);
+    border-radius: 20px;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    margin: 8px;
+    padding: 0;
+}
+
+.tictactoe-cell:hover {
+    background: rgba(138,43,226,0.4);
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(138,43,226,0.8);
+}
+
+.tictactoe-cell:active {
+    transform: scale(0.95);
+    background: rgba(138,43,226,0.6);
+}
+
+.ttt-mode {
+    color: #8a2be2;
+    font-size: 36px;
+}
+
+.ttt-time {
+    color: #00ffff;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.ttt-back-btn {
+    font-size: 24px;
+    padding: 15px 40px;
+    background: #8a2be2;
+    color: white;
+    border-radius: 50px;
+    margin-top: 30px;
+}
+
+.lucky-title {
+    font-size: 64px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 20px #ff4500;
+}
+
+.lucky-prompt {
+    font-size: 32px;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.lucky-entry {
+    font-size: 28px;
+    padding: 15px;
+    background: #fffacd;
+    border-radius: 15px;
+    box-shadow: 0 0 30px #ffd700;
+}
+
+.lucky-back-btn {
+    font-size: 22px;
+    padding: 12px 35px;
+    background: #ff4500;
+    color: white;
+    border-radius: 40px;
+    margin-top: 40px;
 }

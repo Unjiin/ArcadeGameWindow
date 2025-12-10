@@ -6,8 +6,68 @@
 #define ROWS 11
 #define COLS 25
 
-// Объявление структуры CellData
-typedef struct CellData CellData;
+typedef enum {
+    Empty,
+    Cross,
+    Circle
+} CellTicTacToeStatus;
+
+// Объявление структур
+typedef struct CellMinesweeperData CellMinesweeperData;
+typedef struct CellTicTacToeData CellTicTacToeData;
+typedef struct MinesweeperData MinesweeperData;
+typedef struct TicTacToeData TicTacToeData;
+typedef struct LuckyGameData LuckyGameData;
+
+struct LuckyGameData {
+    GtkWidget *grid;
+    GtkWidget *entry;
+    int max_num;
+    int secret_number;
+    int attempts_left;
+    int is_won;
+};
+
+struct MinesweeperData {
+    GtkWidget *grid;
+    CellMinesweeperData **cells;
+    GtkWidget *flags_label;
+    int bombs_count;
+    int label_flags_count;
+    int is_bombs_set;
+    int game_time;
+    guint timer_id;
+    GtkWidget *time_label;
+};
+
+struct CellMinesweeperData {
+    GtkWidget *button;
+    int row;
+    int col;
+    int is_bomb;
+    int is_open;
+    int is_flagged;
+    int neighbor_bombs;
+    guint timeout_id;
+};
+
+struct TicTacToeData {
+    GtkWidget *grid;
+    CellTicTacToeData **cells;
+    int game_time;
+    guint timer_id;
+    GtkWidget *time_label;
+    CellTicTacToeStatus last_pick;
+    int isWin;
+    int isHumanStart;
+};
+
+struct CellTicTacToeData {
+    GtkWidget *button;
+    int row;
+    int col;
+    CellTicTacToeStatus status;
+};
 
 typedef struct {
     GtkWidget *window;
@@ -19,29 +79,12 @@ typedef struct {
     double music_volume;
     double effects_volume;
 
-    // Для сапера
-    GtkWidget *minesweeper_grid;
-    CellData **minesweeper_cells;
-    GtkWidget *game_over_label;
-    GtkWidget *flags_label;
-    int bombs_count;
-    int label_flags_count;
-    int is_bombs_set;
-    int game_time;
-    guint timer_id;
-    GtkWidget *time_label;
-} AppData;
+    MinesweeperData *minesweeper;
 
-struct CellData {
-    GtkWidget *button;
-    int row;
-    int col;
-    int is_bomb;
-    int is_open;
-    int is_flagged;
-    int neighbor_bombs;
-    guint timeout_id;
-};
+    TicTacToeData *tic_tac_toe;
+
+    LuckyGameData *lucky_game;
+} AppData;
 
 
 // Прототипы функций
@@ -49,6 +92,8 @@ struct CellData {
 GtkWidget* createMainMenu(AppData *data);
 GtkWidget* createMinesweeperScreen(AppData *data);
 GtkWidget* createSettingsScreen(AppData *data);
+GtkWidget* createTicTacToeScreen(AppData *data);
+GtkWidget* createLuckyGameScreen(AppData *data);
 
 // Очистка
 void cleanup_minesweeper_game(AppData *app_data);
@@ -66,9 +111,10 @@ GtkWidget *load_gif_animation_ms(const char *filename, int duration_ms);
 GtkWidget* load_image(const char *filename);
 
 // Виджеты
-void showResults(AppData *app_data, int res);
+void showResults(AppData *app_data, int res, GtkWidget *widget, int type, int grid_cols, int grid_rows);
 
 // Утилиты
+void openAllGrid(AppData *app_data);
 void back_to_menu(GtkWidget *widget, AppData *app_data);
 void reopen_window(AppData *app_data, const char *str);
 gchar* get_exe_directory();

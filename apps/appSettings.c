@@ -50,12 +50,6 @@ GtkWidget* createSettingsScreen(AppData *data) {
     gtk_box_append(GTK_BOX(main_box), titleLabel);
 
 
-
-    // Контейнер для кнопок
-    // GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
-    // gtk_widget_set_halign(button_box, GTK_ALIGN_CENTER); // центрируем кнопки
-    // gtk_box_append(GTK_BOX(main_box), button_box);
-    // gtk_widget_add_css_class(button_box, "buttonBox");
     GtkWidget *hbox = gtk_grid_new();
     gtk_grid_set_row_homogeneous(GTK_GRID(hbox), TRUE);
     gtk_grid_set_column_homogeneous(GTK_GRID(hbox), TRUE);

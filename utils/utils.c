@@ -59,7 +59,6 @@ gchar* get_exe_directory() {
 void reopen_window(AppData *app_data, const char *str) {
 
     GtkWidget *old_screen = gtk_stack_get_child_by_name(GTK_STACK(app_data->stack), str);
-
     if (old_screen) {
         gtk_stack_remove(GTK_STACK(app_data->stack), old_screen);
 
@@ -84,10 +83,88 @@ void reopen_window(AppData *app_data, const char *str) {
         stop_loop_sound("sounds/mainMineSweeperTheme.mp3");
         play_sound("sounds/mainMenuTheme.ogg", 1, 1, app_data);
         gtk_stack_set_transition_type(GTK_STACK(app_data->stack), GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
+    } else if (strcmp(str, "tictactoe") == 0) {
+        new_screen = createTicTacToeScreen(app_data);
+        gtk_stack_set_transition_type(GTK_STACK(app_data->stack), GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT);
+    } else if (strcmp(str, "luckyGame") == 0) {
+        new_screen = createLuckyGameScreen(app_data);
+        gtk_stack_set_transition_type(GTK_STACK(app_data->stack), GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT);
     }
 
     if (new_screen) {
         gtk_stack_add_named(GTK_STACK(app_data->stack), new_screen, str);
         gtk_stack_set_visible_child_name(GTK_STACK(app_data->stack), str);
+    }
+}
+
+
+void showResults(AppData *app_data, int res, GtkWidget *widget, int type, int grid_cols, int grid_rows) {
+    // Останавливаем таймер только для сапёра
+    if (type == 3) {
+        if (app_data->minesweeper->timer_id != 0) {
+            g_source_remove(app_data->minesweeper->timer_id);
+            app_data->minesweeper->timer_id = 0;
+        }
+    }
+
+    // Проигрываем звуки
+    if (type == 3) {
+        if (res == 0) {
+            openAllGrid(app_data);
+            play_sound("sounds/explosion.flac", 0, 0, app_data);
+        } else {
+            play_sound("sounds/bomb-has-been-defused.wav", 0, 0, app_data);
+        }
+    }
+
+
+    // Главный оверлей — вертикальный бокс по центру
+    GtkWidget *result_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 30);
+    gtk_widget_set_halign(result_box, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(result_box, GTK_ALIGN_CENTER);
+
+    // Большая центральная картинка
+    if (res < 2) {
+        GtkWidget *big_emoji = load_image(res == 1 ? "win.svg" : "lose.svg");
+        gtk_widget_set_size_request(big_emoji, 200, 200); // Ограничиваем размер
+        gtk_box_append(GTK_BOX(result_box), big_emoji);
+    }
+    char *text;
+    switch (res) {
+        case 0:
+            text = "Game Over";
+            break;
+        case 1:
+            text = "You Win";
+            break;
+        case 2:
+            text = "Draw";
+            break;
+        default:
+            text = "Game Over";
+    }
+    // Текст под картинкой — используем CSS для размера
+    GtkWidget *text_label = gtk_label_new(text);
+    gtk_widget_add_css_class(text_label, "game-result-text");
+    gtk_widget_add_css_class(text_label, res == 1 ? "win-message" : "lose-message");
+    gtk_box_append(GTK_BOX(result_box), text_label);
+
+    // Кладём весь бокс поверх поля
+    gtk_grid_attach(GTK_GRID(widget), result_box, 0, 0, grid_cols, grid_rows);
+    gtk_widget_set_visible(result_box, TRUE);
+
+    // Блокируем клетки
+    if (type == 3) { // Сапёр
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                gtk_widget_set_sensitive(app_data->minesweeper->cells[row][col].button, FALSE);
+            }
+        }
+    } else if (type == 4) { // Крестики-нолики
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                gtk_widget_set_sensitive(app_data->tic_tac_toe->cells[row][col].button, FALSE);
+            }
+        }
     }
 }

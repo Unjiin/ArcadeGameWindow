@@ -8,7 +8,7 @@ static void on_button_clicked(GtkButton *button, AppData *data) {
             reopen_window(data, "settings");
             break;
         case 1:
-            gtk_stack_set_visible_child_name(GTK_STACK(data->stack), "luckyGame");
+            reopen_window(data, "luckyGame");
             break;
         case 2:
             gtk_stack_set_visible_child_name(GTK_STACK(data->stack), "cards");
@@ -16,104 +16,13 @@ static void on_button_clicked(GtkButton *button, AppData *data) {
         case 3:
             reopen_window(data, "minesweeper");
             break;
+        case 4:
+            reopen_window(data, "tictactoe");
+            break;
         default:
             break;
         }
 }
-// typedef struct {
-//     GtkWidget *front;
-//     GtkWidget *back;
-//     gboolean is_flipped;
-// } CardData;
-// void flip_card_callback(GtkButton *btn, CardData *d) {
-//     if (d->is_flipped) {
-//         // Возврат к фронту
-//         gtk_widget_set_transform(d->front, gtk_transform_scale(gtk_transform_new(), 0.0, 1.0));
-//         gtk_widget_set_opacity(d->front, 1.0);
-//         g_timeout_add(50, (GSourceFunc)(void(*)(CardData*))[](CardData *d)->gboolean {
-//             static float step = 0.0;
-//             step += 0.15;
-//             if (step >= 1.0) {
-//                 step = 0.0;
-//                 gtk_widget_set_transform(d->front, NULL);
-//                 gtk_widget_set_opacity(d->back, 0.0);
-//                 gtk_widget_set_transform(d->back, gtk_transform_scale(gtk_transform_new(), 0.0, 1.0));
-//                 d->is_flipped = FALSE;
-//                 return FALSE;
-//             }
-//             gtk_widget_set_transform(d->front, gtk_transform_scale(gtk_transform_new(), 1.0 - step, 1.0));
-//             return TRUE;
-//         }, d);
-//     } else {
-//         // Переворот к бэку
-//         g_timeout_add(50, (GSourceFunc)(void(*)(CardData*))[](CardData *d)->gboolean {
-//             static float step = 0.0;
-//             step += 0.15;
-//             if (step >= 1.0) {
-//                 step = 0.0;
-//                 gtk_widget_set_transform(d->back, NULL);
-//                 gtk_widget_set_opacity(d->back, 1.0);
-//                 gtk_widget_set_transform(d->front, gtk_transform_scale(gtk_transform_new(), 0.0, 1.0));
-//                 d->is_flipped = TRUE;
-//                 return FALSE;
-//             }
-//             gtk_widget_set_transform(d->front, gtk_transform_scale(gtk_transform_new(), 1.0 - step, 1.0));
-//             gtk_widget_set_transform(d->back, gtk_transform_scale(gtk_transform_new(), step, 1.0));
-//             gtk_widget_set_opacity(d->back, step);
-//             return TRUE;
-//         }, d);
-//     }
-// }
-// GtkWidget* create_flip_card(const char *front_text, const char *back_color) {
-//     // Главный контейнер
-//     GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-//     gtk_widget_set_size_request(container, 200, 300);
-//
-//     // Кнопка, по которой кликаем
-//     GtkWidget *button = gtk_button_new();
-//     gtk_button_set_has_frame(GTK_BUTTON(button), FALSE);
-//     gtk_widget_set_cursor_from_name(button, "pointer");
-//
-//     // Overlay — чтобы front и back лежали друг на друге
-//     GtkWidget *overlay = gtk_overlay_new();
-//     gtk_button_set_child(GTK_BUTTON(button), overlay);
-//
-//     // FRONT
-//     GtkWidget *front = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-//     gtk_widget_add_css_class(front, "card-front");
-//     gtk_widget_set_size_request(front, 200, 300);
-//     GtkWidget *front_label = gtk_label_new(front_text);
-//     gtk_widget_add_css_class(front_label, "card-label");
-//     gtk_box_append(GTK_BOX(front), front_label);
-//
-//     // BACK
-//     GtkWidget *back = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-//     gtk_widget_add_css_class(back, "card-back");
-//     gtk_widget_set_size_request(back, 200, 300);
-//     GtkWidget *back_label = gtk_label_new("❤️");
-//     gtk_widget_add_css_class(back_label, "card-label");
-//     gtk_box_append(GTK_BOX(back), back_label);
-//
-//     // Изначально back скрыт и сжат
-//     gtk_widget_set_opacity(back, 0.0);
-//     gtk_widget_set_transform(back, gtk_transform_scale(gtk_transform_new(), 0.0, 1.0));
-//
-//     gtk_overlay_add_overlay(GTK_OVERLAY(overlay), front);
-//     gtk_overlay_add_overlay(GTK_OVERLAY(overlay), back);
-//
-//     // Данные для анимации
-//
-//     CardData *data = g_new(CardData, 1);
-//     data->front = front;
-//     data->back = back;
-//     data->is_flipped = FALSE;
-//
-//     // Анимация переворота
-//     g_signal_connect(button, "clicked", G_CALLBACK(flip_card_callback), data);
-//
-//     gtk_box_append(GTK_BOX(container), button);
-//     return container;
-// }
 GtkWidget* createMainMenu(AppData *data) {
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
     gtk_widget_set_halign(main_box, GTK_ALIGN_CENTER);
@@ -194,7 +103,7 @@ GtkWidget* createMainMenu(AppData *data) {
         gtk_widget_add_css_class(btn, "menuBtn");
         gtk_widget_set_cursor(btn, gdk_cursor_new_from_name("pointer", NULL));
         gtk_widget_set_size_request(btn, 200, 60);
-        g_object_set_data(G_OBJECT(btn), "game-index", GINT_TO_POINTER(i+1));
+        g_object_set_data(G_OBJECT(btn), "game-index", GINT_TO_POINTER(i+1+3));
         g_signal_connect(btn, "clicked", G_CALLBACK(on_button_clicked), data);
         gtk_box_append(GTK_BOX(right_box), btn);
     }

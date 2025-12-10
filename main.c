@@ -25,7 +25,9 @@ static void load_css(void) {
 static void activate(GtkApplication *app, gpointer user_data) {
     int difficult = 0;
     AppData *app_data = g_malloc0(sizeof(AppData));
-
+    MinesweeperData *minesweeper = g_malloc0(sizeof(MinesweeperData));
+    TicTacToeData *tic_tac_toe = g_malloc0(sizeof(TicTacToeData));
+    LuckyGameData *lucky_game = g_malloc0(sizeof(LuckyGameData));
     load_css();
 
     app_data->window = gtk_application_window_new(app);  // Сохраняем в структуру
@@ -33,6 +35,9 @@ static void activate(GtkApplication *app, gpointer user_data) {
     app_data->difficult = difficult;
     app_data->effects_volume = 1.0;
     app_data->music_volume = 0.2;
+    app_data->minesweeper = minesweeper;
+    app_data->tic_tac_toe = tic_tac_toe;
+    app_data->lucky_game = lucky_game;
 
     gtk_window_set_title(GTK_WINDOW(app_data->window), "My Games");
     gtk_window_set_default_size(GTK_WINDOW(app_data->window), 1200, 1000);

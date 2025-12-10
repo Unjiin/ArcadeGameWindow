@@ -9,13 +9,13 @@ typedef struct {
     int row;
     int col;
 } OnClickData;
-static void update_cell_appearance(CellData *cell);
+static void update_cell_appearance(CellMinesweeperData *cell);
 static GtkWidget* create_cell(int row, int col, AppData *app_data);
 static void update_counts(AppData *app_data);
 static void place_bombs(AppData *app_data, int exclude_row, int exclude_col) {
     int bombs_placed = 0;
     int total_cells = ROWS * COLS;
-    int bomb_count = app_data->bombs_count;
+    int bomb_count = app_data->minesweeper->bombs_count;
 
     // Если бомб больше, чем клеток (минус исключенная), то скорректировать?
     if (bomb_count >= total_cells) {
@@ -27,112 +27,66 @@ static void place_bombs(AppData *app_data, int exclude_row, int exclude_col) {
         int col = rand() % COLS;
 
         // Пропускаем исключенную клетку и уже занятые бомбами
-        if ((row == exclude_row && col == exclude_col) || app_data->minesweeper_cells[row][col].is_bomb) {
+        if ((row == exclude_row && col == exclude_col) || app_data->minesweeper->cells[row][col].is_bomb) {
             continue;
         }
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 if (i == 0 && j == 0) continue;
-                if (row + i >= 0 && row + i < ROWS && col + j >= 0 && col + j < COLS) app_data->minesweeper_cells[row + i][col + j].neighbor_bombs++;
+                if (row + i >= 0 && row + i < ROWS && col + j >= 0 && col + j < COLS) app_data->minesweeper->cells[row + i][col + j].neighbor_bombs++;
             }
         }
-        app_data->minesweeper_cells[row][col].is_bomb = 1;
+        app_data->minesweeper->cells[row][col].is_bomb = 1;
         bombs_placed++;
     }
 }
 void cleanup_minesweeper_game(AppData *app_data) {
-    if (app_data->timer_id != 0) {
-        g_source_remove(app_data->timer_id);
-        app_data->timer_id = 0;
+    if (app_data->minesweeper->timer_id != 0) {
+        g_source_remove(app_data->minesweeper->timer_id);
+        app_data->minesweeper->timer_id = 0;
     }
 
     /* Массив клеток — единственное, что мы аллоцировали сами */
-    if (app_data->minesweeper_cells != NULL) {
+    if (app_data->minesweeper->cells != NULL) {
         for (int row = 0; row < ROWS; row++) {
-            if (app_data->minesweeper_cells[row] != NULL) {
-                g_free(app_data->minesweeper_cells[row]);
+            if (app_data->minesweeper->cells[row] != NULL) {
+                g_free(app_data->minesweeper->cells[row]);
             }
         }
-        g_free(app_data->minesweeper_cells);
-        app_data->minesweeper_cells = NULL;
+        g_free(app_data->minesweeper->cells);
+        app_data->minesweeper->cells = NULL;
     }
 
     /* Сброс состояния */
-    app_data->minesweeper_grid = NULL;
-    app_data->flags_label = NULL;
-    app_data->time_label = NULL;
-    app_data->game_over_label = NULL;
+    app_data->minesweeper->grid = NULL;
+    app_data->minesweeper->flags_label = NULL;
+    app_data->minesweeper->time_label = NULL;
 
     // Сброс состояния
-    app_data->is_bombs_set = 0;
-    app_data->game_time = 0;
-    app_data->bombs_count = 0;  // важно! будет переустановлено в createMinesweeperScreen
-    app_data->label_flags_count = 0;
+    app_data->minesweeper->is_bombs_set = 0;
+    app_data->minesweeper->game_time = 0;
+    app_data->minesweeper->game_time = 0;  // важно! будет переустановлено в createMinesweeperScreen
+    app_data->minesweeper->label_flags_count = 0;
 }
 void openAllGrid(AppData *app_data) {
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
-            if (!app_data->minesweeper_cells[i][j].is_open || app_data->minesweeper_cells[i][j].neighbor_bombs) {
-                app_data->minesweeper_cells[i][j].is_open = 1;
-                app_data->minesweeper_cells[i][j].neighbor_bombs = 0;
-                update_cell_appearance(&app_data->minesweeper_cells[i][j]);
+            if (!app_data->minesweeper->cells[i][j].is_open || app_data->minesweeper->cells[i][j].neighbor_bombs) {
+                app_data->minesweeper->cells[i][j].is_open = 1;
+                app_data->minesweeper->cells[i][j].neighbor_bombs = 0;
+                update_cell_appearance(&app_data->minesweeper->cells[i][j]);
             }
         }
     }
 }
-void showResults(AppData *app_data, int res) {
-    // Останавливаем таймер
-    if (app_data->timer_id != 0) {
-        g_source_remove(app_data->timer_id);
-        app_data->timer_id = 0;
-    }
-    if (res == 0) {
-        openAllGrid(app_data);
-        play_sound("sounds/explosion.flac", 0, 0, app_data);
-    } else {
-        play_sound("sounds/bomb-has-been-defused.wav", 0, 0, app_data);
-    }
-    // Главный оверлей — вертикальный бокс по центру
-    GtkWidget *result_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 30);
-    gtk_widget_set_halign(result_box, GTK_ALIGN_CENTER);
-    gtk_widget_set_valign(result_box, GTK_ALIGN_CENTER);
-
-    // Большая центральная картинка (твоя эмодзи-победа или взрыв)
-    GtkWidget *big_emoji = load_image(res == 1 ? "win.svg" : "lose.svg");  // размер подстраивай под свои PNG
-    gtk_box_append(GTK_BOX(result_box), big_emoji);
-
-    // Текст под картинкой — жирный, огромный, как в старые добрые времена
-    GtkWidget *text_label = gtk_label_new(res == 1 ? "You Win!!!" : "Game Over");
-    gtk_label_set_markup(GTK_LABEL(text_label),
-                        res == 1 ? "<span size='48000' weight='bold'>You Win!!!</span>"
-                                 : "<span size='48000' weight='bold'>Game Over</span>");
-
-    gtk_widget_add_css_class(text_label, "game-result-text");
-    gtk_widget_add_css_class(text_label, res == 1 ? "win-message" : "lose-message");
-
-    gtk_box_append(GTK_BOX(result_box), text_label);
-
-    // Кладём весь бокс поверх поля
-    gtk_grid_attach(GTK_GRID(app_data->minesweeper_grid), result_box, 0, 0, COLS, ROWS);
-    gtk_widget_set_visible(result_box, TRUE);
-
-    app_data->game_over_label = result_box;  // сохраняем, если потом понадобится
-
-    // Блокируем клетки
-    for (int row = 0; row < ROWS; row++) {
-        for (int col = 0; col < COLS; col++) {
-            gtk_widget_set_sensitive(app_data->minesweeper_cells[row][col].button, FALSE);
-        }
-    }
-}
-void checkWinOrLose(AppData *app_data) {
+static void checkWinOrLose(AppData *app_data) {
     int countClosed = 0;
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
-            if (!app_data->minesweeper_cells[i][j].is_open) countClosed++;
+            if (!app_data->minesweeper->cells[i][j].is_open) countClosed++;
         }
     }
-    if (countClosed == app_data->bombs_count) showResults(app_data, 1);
+    if (countClosed == app_data->minesweeper->bombs_count) showResults(app_data, 1, app_data->minesweeper->grid, 3, COLS, ROWS);
 }
 gboolean update_timer_callback(gpointer user_data) {
     AppData *app_data = (AppData *)user_data;
@@ -141,30 +95,30 @@ gboolean update_timer_callback(gpointer user_data) {
     printf("Timer tick\n");
 
     // Обновление времени в сапере
-    app_data->game_time++;
-    g_autofree char *time_text = g_strdup_printf("%d", app_data->game_time);
-    gtk_label_set_text(GTK_LABEL(app_data->time_label), time_text);
+    app_data->minesweeper->game_time++;
+    g_autofree char *time_text = g_strdup_printf("%d", app_data->minesweeper->game_time);
+    gtk_label_set_text(GTK_LABEL(app_data->minesweeper->time_label), time_text);
 
     // Возвращаем TRUE чтобы таймер продолжал работать
     return TRUE;
 }
 void on_cell_clicked_function(int row, int col, AppData *app_data, int isHumanPress) {
 
-    if (!app_data->minesweeper_cells) {
+    if (!app_data->minesweeper->cells) {
         return;
     }
 
-    CellData *cell = &app_data->minesweeper_cells[row][col];
+    CellMinesweeperData *cell = &app_data->minesweeper->cells[row][col];
     // Проверяем, можно ли открыть клетку
     if (cell->is_open || cell->is_flagged) {
         return;
     }
 
     // Размещаем бомбы при первом клике
-    if (!app_data->is_bombs_set) {
-        app_data->timer_id = g_timeout_add_seconds(1, update_timer_callback, app_data);
+    if (!app_data->minesweeper->is_bombs_set) {
+        app_data->minesweeper->timer_id = g_timeout_add_seconds(1, update_timer_callback, app_data);
         place_bombs(app_data, cell->row, cell->col);
-        app_data->is_bombs_set = 1;
+        app_data->minesweeper->is_bombs_set = 1;
         play_sound("sounds/bomb-has-been-planted.wav", 0, 0, app_data);
     }
 
@@ -184,7 +138,7 @@ void on_cell_clicked_function(int row, int col, AppData *app_data, int isHumanPr
 
                 // Проверяем границы
                 if (ni >= 0 && ni < ROWS && nj >= 0 && nj < COLS) {
-                    CellData *neighbor = &app_data->minesweeper_cells[ni][nj];
+                    CellMinesweeperData *neighbor = &app_data->minesweeper->cells[ni][nj];
 
                     // Рекурсия только для закрытых и нефлагированных клеток
                     if (!neighbor->is_open && !neighbor->is_flagged) {
@@ -194,8 +148,8 @@ void on_cell_clicked_function(int row, int col, AppData *app_data, int isHumanPr
             }
         }
     }
-    if (app_data->label_flags_count == 0) checkWinOrLose(app_data);
-    if (cell->is_bomb) showResults(app_data, 0);
+    if (app_data->minesweeper->label_flags_count == 0) checkWinOrLose(app_data);
+    if (cell->is_bomb) showResults(app_data, 0, app_data->minesweeper->grid, 3, COLS, ROWS);
 }
 static void on_cell_clicked(GtkButton *button, gpointer user_data) {
     OnClickData *cell_from_signal = (OnClickData *)user_data;
@@ -205,19 +159,19 @@ static void on_cell_right_click(GtkGestureClick *gesture, int n_press, double x,
     OnClickData *cell_from_signal = (OnClickData *)user_data;
     AppData *app_data = cell_from_signal->data;
     // Получаем правильную клетку из массива
-    CellData *cell = &app_data->minesweeper_cells[cell_from_signal->row][cell_from_signal->col];
+    CellMinesweeperData *cell = &app_data->minesweeper->cells[cell_from_signal->row][cell_from_signal->col];
     if (cell->is_open) return;
 
-    if (app_data->label_flags_count > 0 || (app_data->label_flags_count == 0 && cell->is_flagged)) {
-        if (cell->is_flagged) app_data->label_flags_count++;
-        else app_data->label_flags_count--;
+    if (app_data->minesweeper->label_flags_count > 0 || (app_data->minesweeper->label_flags_count == 0 && cell->is_flagged)) {
+        if (cell->is_flagged) app_data->minesweeper->label_flags_count++;
+        else app_data->minesweeper->label_flags_count--;
 
         update_counts(app_data);
         cell->is_flagged = !cell->is_flagged;
         play_sound("sounds/click1.wav", 0, 0, app_data);
         update_cell_appearance(cell);
     }
-    if (app_data->label_flags_count == 0) checkWinOrLose(app_data);
+    if (app_data->minesweeper->label_flags_count == 0) checkWinOrLose(app_data);
 }
 // Функция возврата в меню
 void back_to_menu(GtkWidget *widget, AppData *app_data) {
@@ -233,7 +187,7 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
     gtk_widget_set_valign(main_box, GTK_ALIGN_CENTER);
     // Заголовок
     GtkWidget *title = gtk_label_new("Minesweeper");
-    gtk_widget_add_css_class(title, "minesweeper-title");
+    gtk_widget_add_css_class(title, "game-title");
 
     // Контейнер для игрового поля
     GtkWidget *grid = gtk_grid_new();
@@ -245,22 +199,22 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
 
     switch (app_data->difficult) {
         case 0:
-            app_data->bombs_count = 10;
+            app_data->minesweeper->bombs_count = 10;
             break;
         case 1:
-            app_data->bombs_count = 30;
+            app_data->minesweeper->bombs_count = 30;
             break;
         case 2:
-            app_data->bombs_count = 40;
+            app_data->minesweeper->bombs_count = 40;
             break;
         default:
-            app_data->bombs_count = 20;
+            app_data->minesweeper->bombs_count = 20;
     }
-    app_data->label_flags_count = app_data->bombs_count;
+    app_data->minesweeper->label_flags_count = app_data->minesweeper->bombs_count;
     // Создаём все клетки поля 9x9
-    CellData **cells = g_new0(CellData*, ROWS);
+    CellMinesweeperData **cells = g_new0(CellMinesweeperData*, ROWS);
     for (int row = 0; row < ROWS; row++) {
-        cells[row] = g_new0(CellData, COLS);
+        cells[row] = g_new0(CellMinesweeperData, COLS);
         for (int col = 0; col < COLS; col++) {
             cells[row][col].row = row;
             cells[row][col].col = col;
@@ -281,9 +235,9 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
 
     // Флаги
     GtkWidget *flag_pic = load_image("flag.svg");
-    g_autofree char *flag_text = g_strdup_printf("%d", app_data->label_flags_count);
+    g_autofree char *flag_text = g_strdup_printf("%d", app_data->minesweeper->label_flags_count);
     GtkWidget *flags_label = gtk_label_new(flag_text);
-    gtk_widget_add_css_class(flags_label, "minesweeper-info");
+    gtk_widget_add_css_class(flags_label, "game-info");
     gtk_widget_set_size_request(flag_pic, 20, 20);
 
     GtkWidget *flags_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -293,7 +247,7 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
     // Время
     GtkWidget *clock_pic = load_image("clock.svg");
     GtkWidget *time_label = gtk_label_new("0");
-    gtk_widget_add_css_class(time_label, "minesweeper-info");
+    gtk_widget_add_css_class(time_label, "game-info");
 
     GtkWidget *time_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
     gtk_box_append(GTK_BOX(time_box), clock_pic);
@@ -314,13 +268,13 @@ GtkWidget* createMinesweeperScreen(AppData *app_data) {
     gtk_box_append(GTK_BOX(main_box), grid);
     gtk_box_append(GTK_BOX(main_box), back_btn);
 
-    gtk_widget_add_css_class(main_box, "minesweeper-screen");
+    gtk_widget_add_css_class(main_box, "game-screen");
 
     // Сохраняем указатель для будущего обновления
-    app_data->minesweeper_grid = grid;
-    app_data->minesweeper_cells = cells;
-    app_data->flags_label = flags_label;
-    app_data->time_label = time_label;
+    app_data->minesweeper->grid = grid;
+    app_data->minesweeper->cells = cells;
+    app_data->minesweeper->flags_label = flags_label;
+    app_data->minesweeper->time_label = time_label;
     return main_box;
 }
 
@@ -348,18 +302,18 @@ static GtkWidget* create_cell(int row, int col, AppData *app_data) {
 }
 // Обновление счетчиков
 static void update_counts(AppData *app_data) {
-    g_autofree char *flag_text = g_strdup_printf("%d", app_data->label_flags_count);
-    gtk_label_set_text(GTK_LABEL(app_data->flags_label), flag_text);
+    g_autofree char *flag_text = g_strdup_printf("%d", app_data->minesweeper->label_flags_count);
+    gtk_label_set_text(GTK_LABEL(app_data->minesweeper->flags_label), flag_text);
 }
 
 static gboolean update_cell_appearance_timeout(gpointer user_data) {
-    CellData *cell = (CellData*)user_data;
+    CellMinesweeperData *cell = (CellMinesweeperData*)user_data;
     update_cell_appearance(cell);
     return G_SOURCE_REMOVE; // Таймер сработает только один раз
 }
 
 // Обновление внешнего вида клетки
-static void update_cell_appearance(CellData *cell) {
+static void update_cell_appearance(CellMinesweeperData *cell) {
     // Сбрасываем все классы
     gtk_widget_remove_css_class(cell->button, "cell-closed");
     gtk_widget_remove_css_class(cell->button, "cell-open");

@@ -38,7 +38,9 @@ set(APP_ICON_RESOURCE "")
 if (WIN32)
     set(POTENTIAL_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icon.rc")
     if (EXISTS "${POTENTIAL_ICON}")
-        set(APP_ICON_RESOURCE "${POTENTIAL_ICON}")
+        set(APP_ICON_RESOURCE "${POTENTIAL_ICON}"
+                apps/appTicTacToe.c
+                apps/appLuckyGame.c)
         message(STATUS "Windows icon reesource found: ${APP_ICON_RESOURCE}")
     else()
         message(WARNING "Windows icon resource not found: ${POTENTIAL_ICON}")
